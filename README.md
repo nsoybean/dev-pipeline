@@ -113,7 +113,7 @@ Open the URL printed in the terminal (default port `5174`).
 
 1. `/dev-plan <describe the feature>`
 2. Review or edit `plans/<feature>/plan.md`
-3. `Workflow({ name: "dev-pipeline", args: { specPath: "plans/<feature>/plan.md" } })`
+3. `/dev-pipeline plans/<feature>/plan.md`
 4. Inspect results in git history and/or the workflow viewer
 
 ## Design principles

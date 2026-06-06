@@ -19,7 +19,10 @@ const specPath = typeof args === 'string'
 
 if (!specPath) throw new Error('Pass a spec path: "plans/<feature>/plan.md" or { specPath: "..." }')
 
+const resultPath = specPath.replace(/\/plan\.md$/, '/result.md')
+
 log(`plan: ${specPath}`)
+log(`result will be written to: ${resultPath}`)
 
 // ---------- schemas ----------
 
@@ -146,6 +149,8 @@ log(`review: ${review.confidence}/10`)
 // ---------- 5. Commit ----------
 
 phase('Commit')
+const failureLines = testResult.failures.map(f => `- **${f.test}** (${f.file ?? 'unknown'}): ${f.error}`).join('\n')
+
 const committed = await agent(
   `The feature described in ${specPath} has been implemented.
 
@@ -156,13 +161,38 @@ Review notes: ${review.notes}
 If tests pass and review confidence >= 7: commit all changes with a concise commit message derived from the plan goal. Do NOT add Co-Authored-By trailers.
 Otherwise: report what's blocking and do NOT commit.
 
+Also write a result summary to ${resultPath} with this exact content (create the file):
+
+---
+# Result: ${specPath}
+
+## Status
+
+| | |
+|---|---|
+| Tests | ${testResult.passed ? '✓ PASS' : `✗ FAIL (${testResult.failures.length} remaining)`} |
+| Build rounds | ${round} |
+| Review confidence | ${review.confidence}/10 |
+
+## Review notes
+
+${review.notes}
+${testResult.failures.length > 0 ? `\n## Remaining test failures\n\n${failureLines}` : ''}
+
+## Commit
+
+<fill in what you did re: commit>
+---
+
 Report what you did.`,
   { phase: 'Commit' }
 )
 log(committed)
+log(`result written to ${resultPath}`)
 
 return {
   specPath,
+  resultPath,
   testsPassed: testResult.passed,
   testFailures: testResult.failures,
   reviewConfidence: review.confidence,

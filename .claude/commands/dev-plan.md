@@ -125,7 +125,7 @@ After writing the file, tell the user:
 - The command to kick off the build pipeline:
 
 ```
-Workflow({ name: "dev-pipeline", args: { specPath: "plans/<feature-name>/plan.md" } })
+/dev-pipeline plans/<feature-name>/plan.md
 ```
 
 If the user wants to tweak the plan before building, they can edit `plans/<feature-name>/plan.md` directly.
