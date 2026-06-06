@@ -3,12 +3,12 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from main import app
-from geocoding import AddressNotFoundError, GeocodingServiceError
+from app.main import app
+from app.geocoding import AddressNotFoundError, GeocodingServiceError
 
 client = TestClient(app)
 
-MOCK_TARGET = "geocoding.geocode_address"
+MOCK_TARGET = "app.geocoding.geocode_address"
 
 
 # ---------------------------------------------------------------------------

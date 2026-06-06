@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-import geocoding
-from geocoding import AddressNotFoundError, GeocodingServiceError
+from app import geocoding
+from app.geocoding import AddressNotFoundError, GeocodingServiceError
 
 app = FastAPI()
 

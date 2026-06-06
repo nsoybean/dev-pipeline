@@ -70,8 +70,10 @@ Or pass a folder name (resolves to `plans/<name>/plan.md`)
 │   ├── commands/dev-plan.md      # Planning slash command
 │   └── workflows/dev-pipeline.js # TDD build workflow
 ├── plans/                        # Feature specs (one folder per feature)
-├── main.py                       # Sample FastAPI app (workflow output)
-├── geocoding.py
+├── src/
+│   └── app/                      # Sample FastAPI app (workflow output)
+│       ├── main.py               # Routes and API models
+│       └── geocoding.py          # Nominatim geocoding logic
 ├── tests/
 └── workflow-app/                 # UI to inspect pipeline runs (optional)
 ```
@@ -94,7 +96,7 @@ uv sync
 pytest
 
 # Start the server
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
 
 ## Workflow viewer (optional)
