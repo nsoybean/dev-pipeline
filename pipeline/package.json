@@ -1,0 +1,19 @@
+{
+  "name": "@agentic-dev/dev-pipeline",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "dev-pipeline": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev-pipeline": "tsx src/cli.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
