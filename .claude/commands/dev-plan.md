@@ -1,8 +1,12 @@
 ---
-description: Interactive planning — explore codebase, ask clarifying questions, write spec files for dev-pipeline
+description: Interactive planning — explore codebase, ask clarifying questions, write spec for dev-pipeline
 ---
 
 You are a senior engineer running an interactive planning session. Your job is to produce a complete, unambiguous spec that a headless build agent can implement without asking any follow-up questions.
+
+**Planning philosophy:** Write the best plan *you* know how to write. Use your native planning strengths — research, comparisons, diagrams, tables, sequence charts, code sketches, file-layout maps. Do not flatten a rich plan into a generic template. The sections below are a **contract with the build pipeline**, not a cap on structure or depth.
+
+**Do not overplan execution.** Your job is the *what* and *why* — behaviour, contracts, architecture. Leave *how* to slice work to the build pipeline. A short todo list (3–6 items) is enough; do not write per-task file lists, acceptance criteria, or dependency graphs.
 
 ## Phase 1 — Understand what exists
 
@@ -34,111 +38,94 @@ Use AskUserQuestion with 1–4 focused questions (max 4 options each). Ask only 
 
 ## Phase 3 — Write the spec
 
-Derive a kebab-case folder name from the feature name (e.g. "User Profile Page" → `user-profile-page`, "Task Tracker API" → `task-tracker-api`). All plan files for this feature live under `plans/<feature-name>/`. This isolates each feature's plan so multiple features can be planned and built in parallel.
+Derive a kebab-case folder name from the feature name (e.g. "User Profile Page" → `user-profile-page`, "Task Tracker API" → `task-tracker-api`). Write a single file:
 
-Incorporate the codebase findings and user answers into a formal spec. Create or overwrite these files:
+**`plans/<feature-name>/plan.md`**
 
-### `plans/<feature-name>/plan.md`
-Structure:
-```
-# <Feature Name>
+---
 
-## Goal
-One paragraph. What this delivers and why it matters.
+### Structure — flexible body, fixed contracts
 
-## User-visible behaviour
-**This section is the source of truth for the test suite.** The pipeline's test step will write and run tests covering exactly — and only — what is described here. Be precise: name API response shapes, exact error messages, HTTP status codes, UI text. Describe the happy path first, then each failure mode explicitly.
+Organise the document however reads best for this feature. **Section order, grouping, and extra sections are yours to decide.**
 
-What you write here determines what gets tested. If a behaviour is not here, it will not be tested.
+#### Required (pipeline reads these by heading)
 
-## Test contracts
-For each behaviour above, document:
-- The function/endpoint under test (name + signature)
-- Input → expected output for the happy path
-- Input → expected error for each failure mode
+These headings must appear — exact spelling, `##` level:
 
-Do NOT write code here. State the contract precisely enough that tests can be written against interfaces that don't exist yet. This is what the write-tests agent reads before any implementation exists.
+| Heading | Purpose |
+|---|---|
+| `## Goal` | One paragraph: what this delivers and why it matters. |
+| `## User-visible behaviour` | **Source of truth for the test suite.** Precise happy path, then each failure mode: HTTP status codes, response shapes, error messages, UI copy. If a behaviour is not here, it will not be tested. |
+| `## Test contracts` | For each behaviour above: function/endpoint under test, happy-path input → output, and each failure input → error. No implementation code — precise enough to write tests against interfaces that do not exist yet. |
+| `## Out of scope` | Explicit list of what this spec does NOT cover. |
 
-## Architecture & key decisions
-For each decision: what you chose, what you ruled out, and why.
+You may merge content across sections when it reduces duplication, but all four headings must still exist.
 
-## Data model / contracts
-Schemas, types, API request/response shapes. Use TypeScript interfaces or JSON Schema — whichever matches the stack.
+#### TDD (required note — one short paragraph or bullet list)
 
-## Constraints from the existing codebase
-Patterns, conventions, or deps the agent must respect. Quote file paths.
+State explicitly that this feature follows **test-driven development**:
 
-## Out of scope
-Explicit list of things this spec does NOT cover.
+1. **Red** — write tests from `Test contracts` first; they must fail (missing implementation).
+2. **Green** — implement only enough to make those tests pass.
+3. Tests are the contract — implementation must not weaken or rewrite them.
 
-## Open questions
-Anything that came up but wasn't resolved. Include your recommendation.
-```
+Place this under `## Test contracts`, as `## TDD approach`, or in frontmatter — wherever fits. Keep it brief; the build pipeline enforces the order.
 
-### `plans/<feature-name>/tasks.md`
-Break the design into tasks the build agent will execute in order. For each task:
-```
-## task-<n>: <kebab-case-id> — <short imperative title>
+#### Todos (lightweight execution hints)
 
-**Description:** 1-3 sentences on what to do.
-**Files:** paths to create or modify
-**Depends on:** earlier task ids (if any)
-**Acceptance:** one sentence on how a reviewer confirms this is done
-```
+Include a simple checklist so humans and agents know the rough sequence. **Do not decompose further.**
 
-Order tasks so dependencies come first. Keep each task small enough for one agent in one pass.
+Use YAML frontmatter if your environment supports it (Cursor plan mode, etc.):
 
-**This workflow follows TDD. The task order must be:**
-1. `scaffold` — create file/directory structure and type stubs (no logic)
-2. `write-tests` — write the full test suite against the contracts in plan.md (BEFORE any implementation)
-3. All implementation tasks — make the tests pass
-4. Any follow-on tasks (migrations, config, docs)
-
-The `write-tests` task always comes second (after scaffold, before any implementation). The pipeline will run a red-check after this task to confirm tests fail correctly — that's the TDD signal that the tests are real. Implementation tasks must not modify test files.
-
-Structure the `write-tests` task like this:
-
-```
-## task-2: write-tests — Write failing tests against the contracts
-
-**Description:** Write the full test suite from plan.md → Test contracts. Import from the exact
-file paths that later tasks will create. Tests MUST fail at this stage (missing implementations).
-Do NOT mock away missing code — let the failures be real. Do not write any implementation.
-**Files:**
-  - tests/unit/<module>.test.ts     (or equivalent for the stack)
-  - tests/integration/<feature>.test.ts
-  - tests/e2e/<feature>.e2e.ts
-**Depends on:** task-1 (scaffold)
-**Acceptance:** Test files exist; running the suite produces failures due to missing implementations (not skipped, not trivially passing).
+```yaml
+---
+name: Feature Name
+overview: One-line summary
+todos:
+  - id: write-tests
+    content: Write failing tests from Test contracts
+    status: pending
+  - id: implement
+    content: Implement until tests pass
+    status: pending
+---
 ```
 
-Structure implementation tasks like this:
+Or a markdown checklist in the body:
 
-```
-## task-N: implement-<component> — <short imperative title>
-
-**Description:** Implement <component>. Do NOT modify any test file.
-**Files:** paths to create or modify (no test files)
-**Depends on:** task-2 (write-tests), any earlier impl tasks
-**Acceptance:** All tests in write-tests that cover this component pass; no test file is modified.
+```markdown
+## Todos
+- [ ] Write failing tests from Test contracts
+- [ ] Implement feature until tests pass
 ```
 
-The test hierarchy to follow:
-- **Unit** — pure functions, business logic, data transformations. No network, no filesystem.
-- **Integration** — components wired together (e.g. route handler + storage). Real local deps; mock only at external boundaries.
-- **E2E** — start the actual server, hit real endpoints with HTTP, assert response body and status. One test per behaviour in User-visible behaviour. Cover happy path and each failure mode. Nothing more.
+Rules for todos:
+- 3–6 items max; high-level milestones only
+- `write-tests` (or equivalent) must come **before** any implementation todo
+- No per-task Files / Depends on / Acceptance blocks — the build agent figures that out
 
-Do NOT include tests for: headers, exit codes, signal handling, process lifecycle, or edge cases not in the spec.
+#### Recommended (include when they add clarity)
+
+- Current codebase snapshot, library/tech choice, API design, architecture diagrams
+- Architecture & key decisions, data model, constraints, files to add/modify
+- Open questions with your recommendation
+
+#### Encouraged
+
+- Comparison tables, mermaid diagrams, code sketches, links to existing files
+
+**Anti-patterns:** Boilerplate padding, invented edge cases, forced sections for trivial features, detailed task breakdowns with file lists and acceptance criteria.
 
 ## Phase 4 — Confirm and hand off
 
-After writing the files, tell the user:
-- What plan files were written (with clickable paths)
+After writing the file, tell the user:
+
+- The plan path (clickable)
 - A 2-3 sentence summary of the design
-- The exact command to kick off the build pipeline (substituting the actual feature folder name):
+- The command to kick off the build pipeline:
 
 ```
 Workflow({ name: "dev-pipeline", args: { specPath: "plans/<feature-name>/plan.md" } })
 ```
 
-If the user wants to tweak the plan before building, tell them to edit `plans/<feature-name>/plan.md` directly and run the command when ready.
+If the user wants to tweak the plan before building, they can edit `plans/<feature-name>/plan.md` directly.
