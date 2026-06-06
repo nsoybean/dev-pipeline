@@ -67,6 +67,7 @@ Write the full test suite BEFORE any implementation exists. This is TDD — test
 Rules:
 - Import from the paths the implementation will use (they don't exist yet — that's correct).
 - Do NOT write any implementation code.
+- Do NOT run or execute the tests — a subsequent agent handles that.
 - Cover every contract: happy path + each failure mode.
 - Do NOT test headers, exit codes, or anything not in the spec.
 
