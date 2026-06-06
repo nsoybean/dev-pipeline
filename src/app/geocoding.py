@@ -1,3 +1,4 @@
+import geopy.distance
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderServiceError, GeocoderTimedOut
 
@@ -27,3 +28,8 @@ def geocode_address(address: str) -> tuple[float, float]:
         raise AddressNotFoundError(f"No result for address: {address!r}")
 
     return location.latitude, location.longitude
+
+
+def distance_between(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Return the geodesic distance in kilometres between two (lat, lon) points."""
+    return float(geopy.distance.geodesic((lat1, lon1), (lat2, lon2)).km)
