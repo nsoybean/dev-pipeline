@@ -1,6 +1,6 @@
 # Agentic Dev Claude Workflow
 
-A sandbox for testing **agentic development** with Claude Code: an interactive planning step produces a spec, then a headless TDD pipeline implements it without follow-up questions.
+A test repo for testing **agentic development** with Claude Code: an interactive planning step produces a spec, then a headless TDD pipeline implements it without follow-up questions.
 
 The sample app (a small FastAPI server) exists mainly as a target for that workflow — not as the product itself.
 
