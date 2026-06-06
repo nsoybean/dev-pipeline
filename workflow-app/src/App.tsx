@@ -16,6 +16,10 @@ export default function App() {
   const [projectDir, setProjectDir] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("workflow-app:sidebar-open") !== "false";
+  });
 
   const refreshRuns = useCallback(async () => {
     try {
@@ -53,6 +57,10 @@ export default function App() {
   }, [selectedRunId]);
 
   useEffect(() => {
+    localStorage.setItem("workflow-app:sidebar-open", String(sidebarOpen));
+  }, [sidebarOpen]);
+
+  useEffect(() => {
     void refreshRuns();
   }, [refreshRuns]);
 
@@ -80,24 +88,47 @@ export default function App() {
   }, [selectedRunId, refreshSelected, refreshRuns]);
 
   return (
-    <div className="layout">
-      <aside className="sidebar">
-        <h1 className="app-title">Workflows</h1>
-        <p className="subtle">Claude Code · this project</p>
-        {projectDir ? (
-          <p className="subtle project-path" title={projectDir}>
-            {projectDir.replace(/^.*\/\.claude\/projects\//, "…/")}
-          </p>
-        ) : null}
+    <div className={`layout ${sidebarOpen ? "" : "layout--sidebar-collapsed"}`}>
+      <aside className="sidebar" aria-label="Workflow runs">
+        <div className="sidebar-toolbar">
+          {sidebarOpen ? (
+            <div className="sidebar-intro">
+              <h1 className="app-title">Workflows</h1>
+              <p className="subtle">Claude Code · this project</p>
+            </div>
+          ) : null}
+          <button
+            type="button"
+            className="sidebar-toggle"
+            aria-expanded={sidebarOpen}
+            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            onClick={() => setSidebarOpen((open) => !open)}
+          >
+            {sidebarOpen ? "‹" : "›"}
+          </button>
+        </div>
 
-        {loading ? <p className="subtle">Loading…</p> : null}
-        {error ? <div className="error-banner">{error}</div> : null}
+        {sidebarOpen ? (
+          <>
+            {projectDir ? (
+              <p className="subtle project-path" title={projectDir}>
+                {projectDir.replace(/^.*\/\.claude\/projects\//, "…/")}
+              </p>
+            ) : null}
 
-        <RunList
-          runs={runs}
-          selectedRunId={selectedRunId}
-          onSelect={setSelectedRunId}
-        />
+            {loading ? <p className="subtle">Loading…</p> : null}
+            {error ? <div className="error-banner">{error}</div> : null}
+
+            <RunList
+              runs={runs}
+              selectedRunId={selectedRunId}
+              onSelect={setSelectedRunId}
+            />
+          </>
+        ) : (
+          <span className="sidebar-collapsed-label">Runs</span>
+        )}
       </aside>
 
       <section className="main">

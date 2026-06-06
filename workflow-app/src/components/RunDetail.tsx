@@ -33,14 +33,15 @@ export default function RunDetail({ run }: Props) {
       </header>
 
       <div className="run-body">
-        <aside className="timeline-aside">
-          <h2 className="panel-title">Pipeline</h2>
-          <p className="timeline-hint">Reference only — live progress is in agents &amp; logs.</p>
-          <PhaseStepper run={run} />
-        </aside>
+        {run.phases.length > 0 ? (
+          <section className="pipeline-bar" aria-label="Pipeline reference">
+            <span className="panel-title">Pipeline</span>
+            <PhaseStepper run={run} horizontal />
+          </section>
+        ) : null}
 
         <div className="run-main">
-          <section className="panel" aria-label="Workflow agents">
+          <section className="panel panel--agents" aria-label="Workflow agents">
             <div className="panel-head">
               <h2 className="panel-title">Agents</h2>
             </div>

@@ -2,6 +2,7 @@ import type { WorkflowPhase, WorkflowRun } from "../types";
 
 type Props = {
   run: WorkflowRun;
+  horizontal?: boolean;
 };
 
 function currentPhaseIndex(run: WorkflowRun): number {
@@ -33,13 +34,7 @@ function phaseState(
   return "pending";
 }
 
-function stateLabel(state: "done" | "current" | "pending"): string {
-  if (state === "done") return "done";
-  if (state === "current") return "active";
-  return "pending";
-}
-
-export default function PhaseStepper({ run }: Props) {
+export default function PhaseStepper({ run, horizontal = false }: Props) {
   if (run.phases.length === 0) {
     return <p className="subtle">No pipeline metadata.</p>;
   }
@@ -47,32 +42,49 @@ export default function PhaseStepper({ run }: Props) {
   const current = currentPhaseIndex(run);
 
   return (
-    <ol className="phase-timeline" aria-label="Pipeline phases">
+    <ol
+      className={`phase-timeline ${horizontal ? "phase-timeline--horizontal" : ""}`}
+      aria-label="Pipeline phases"
+    >
       {run.phases.map((phase, index) => {
         const state = phaseState(phase, index, current, run);
         const isLast = index === run.phases.length - 1;
+        const title = `${index + 1}. ${phase.title}`;
 
         return (
           <li
             key={phase.title}
-            className={`timeline-step timeline-step--${state}`}
+            className={`timeline-step timeline-step--${state} ${horizontal ? "timeline-step--horizontal" : ""}`}
             aria-current={state === "current" ? "step" : undefined}
+            title={phase.detail}
           >
-            <div className="timeline-rail" aria-hidden="true">
-              <span className="timeline-dot" />
-              {!isLast ? <span className="timeline-line" /> : null}
-            </div>
-            <div className="timeline-body">
-              <div className="timeline-row">
-                <span className="timeline-title">{phase.title}</span>
-                <span className={`timeline-status timeline-status--${state}`}>
-                  {stateLabel(state)}
-                </span>
-              </div>
-              {phase.detail ? (
-                <p className="timeline-detail">{phase.detail}</p>
-              ) : null}
-            </div>
+            {horizontal ? (
+              <>
+                <div className="timeline-h-track" aria-hidden="true">
+                  <span
+                    className={`timeline-segment ${index === 0 ? "timeline-segment--leading" : ""} ${state === "done" || state === "current" ? "timeline-segment--active" : ""}`}
+                  />
+                  <span className="timeline-dot" />
+                  <span
+                    className={`timeline-segment ${isLast ? "timeline-segment--trailing" : ""} ${state === "done" ? "timeline-segment--active" : ""}`}
+                  />
+                </div>
+                <span className="timeline-title timeline-title--horizontal">{title}</span>
+              </>
+            ) : (
+              <>
+                <div className="timeline-rail" aria-hidden="true">
+                  <span className="timeline-dot" />
+                  {!isLast ? <span className="timeline-line" /> : null}
+                </div>
+                <div className="timeline-body">
+                  <span className="timeline-title">{title}</span>
+                  {phase.detail ? (
+                    <p className="timeline-detail">{phase.detail}</p>
+                  ) : null}
+                </div>
+              </>
+            )}
           </li>
         );
       })}
