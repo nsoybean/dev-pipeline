@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.helpers import expected_project_version
 
 client = TestClient(app)
 
@@ -12,7 +13,15 @@ def test_get_health_returns_200():
 
 def test_get_health_body():
     response = client.get("/health")
-    assert response.json() == {"status": "ok"}
+    assert response.json() == {
+        "status": "ok",
+        "version": expected_project_version(),
+    }
+
+
+def test_get_health_version_matches_pyproject():
+    response = client.get("/health")
+    assert response.json()["version"] == expected_project_version()
 
 
 def test_get_health_content_type():

@@ -3,13 +3,14 @@ from pydantic import BaseModel
 
 from app import geocoding
 from app.geocoding import AddressNotFoundError, GeocodingServiceError
+from app.version import APP_VERSION
 
 app = FastAPI()
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "version": APP_VERSION}
 
 
 class GeocodeRequest(BaseModel):
